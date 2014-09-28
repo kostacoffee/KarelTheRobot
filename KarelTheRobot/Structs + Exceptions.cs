@@ -15,6 +15,11 @@ namespace KarelTheRobot
             this.row = row;
             this.col = col;
         }
+
+        public override string ToString()
+        {
+            return row.ToString() + ", " + col.ToString();
+        }
     }
 
     class KarelException : Exception
