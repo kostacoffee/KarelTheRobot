@@ -1,4 +1,4 @@
 KarelTheRobot
 =============
 
-C# Implementation of CS106A's Karel the Robot
+C# Implementation of Stanford's CS106A - Karel the Robot

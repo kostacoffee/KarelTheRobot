@@ -37,11 +37,8 @@ namespace KarelTheRobot
         /// </summary>
         public void move()
         {
-            Position nextPos = pos;
-            nextPos.col += (int)Math.Round(Math.Cos(rot), MidpointRounding.AwayFromZero); // cosine moves Karel left/right
-            nextPos.row += (int)Math.Round(-Math.Sin(rot), MidpointRounding.AwayFromZero); // sine move Karel up/down
-            board.checkWalls(pos, nextPos); // throws KarelException if check doeesn't pass
-            pos = nextPos;
+            if (!frontIsClear()) throw new KarelException("Crashed into wall!");
+            makeMove();
             board.moveKarel();
             board.Refresh();
             System.Threading.Thread.Sleep(waitTime);
@@ -82,6 +79,37 @@ namespace KarelTheRobot
             board.putBeeper(pos);
             board.Refresh();
             System.Threading.Thread.Sleep(waitTime);
+        }
+
+        public bool frontIsClear()
+        {
+            Position prevPos = pos;
+            makeMove();
+            bool isClear = !board.wallBlocks(pos, prevPos);
+            pos = prevPos;
+            return isClear;
+        }
+
+        public bool leftIsClear()
+        {
+            rot += Math.PI / 2;
+            bool isClear = frontIsClear();
+            rot -= Math.PI / 2;
+            return isClear;
+        }
+
+        public bool rightIsClear()
+        {
+            rot += 3 * (Math.PI / 2);
+            bool isClear = frontIsClear();
+            rot -= 3 * (Math.PI / 2);
+            return isClear;
+        }
+
+        private void makeMove()
+        {
+            pos.col += (int)Math.Round(Math.Cos(rot), MidpointRounding.AwayFromZero); // cosine moves Karel left/right
+            pos.row += (int)Math.Round(-Math.Sin(rot), MidpointRounding.AwayFromZero); // sine move Karel up/down
         }
     }
 }

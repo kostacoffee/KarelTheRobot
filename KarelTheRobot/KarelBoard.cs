@@ -264,10 +264,9 @@ namespace KarelTheRobot
             beepers[pos.row, pos.col].editBeeperCount(-1);
         }
 
-        internal void checkWalls(Position pos, Position nextPos)
+        internal bool wallBlocks(Position pos, Position nextPos)
         {
-            if ((walls.ContainsKey(pos) && walls[pos].Equals(nextPos)) || (walls.ContainsKey(nextPos) && walls[nextPos].Equals(pos)))
-                throw new KarelException("Crashed into wall!");
+            return ((walls.ContainsKey(pos) && walls[pos].Equals(nextPos)) || (walls.ContainsKey(nextPos) && walls[nextPos].Equals(pos)));
         }
 
         public Karel getKarel()

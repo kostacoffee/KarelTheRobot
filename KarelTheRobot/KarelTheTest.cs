@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace KarelTheRobot
 {
@@ -17,12 +18,11 @@ namespace KarelTheRobot
             karel.turnLeft();
             karel.turnLeft();
             karel.move();
-            karel.pickBeeper();
-            karel.pickBeeper();
             karel.turnLeft();
             karel.turnLeft();
             karel.turnLeft();
-            karel.move();
+
+            if (!karel.leftIsClear()) MessageBox.Show("Right is blocked!");
         }
     }
 }
