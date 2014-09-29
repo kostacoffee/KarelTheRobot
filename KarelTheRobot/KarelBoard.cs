@@ -280,5 +280,10 @@ namespace KarelTheRobot
             karel.karelPic.Left = karel.pos.col * cellSize + LABEL_OFFSET + LABEL_SIZE + karelOffset;
             karel.karelPic.Top = karel.pos.row * cellSize + karelOffset;
         }
+
+        internal Beeper getBeeper(Position pos)
+        {
+            return beepers[pos.row, pos.col];
+        }
     }
 }

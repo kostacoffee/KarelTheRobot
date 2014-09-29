@@ -13,16 +13,7 @@ namespace KarelTheRobot
 
         protected override void run()
         {
-            karel.move();
-            karel.turnLeft();
-            karel.turnLeft();
-            karel.turnLeft();
-            karel.move();
-            karel.turnLeft();
-            karel.turnLeft();
-            karel.turnLeft();
-
-            if (!karel.leftIsClear()) MessageBox.Show("Right is blocked!");
+            while (!karel.facingSouth()) karel.turnLeft();
         }
     }
 }

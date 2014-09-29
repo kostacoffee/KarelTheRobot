@@ -80,7 +80,10 @@ namespace KarelTheRobot
             board.Refresh();
             System.Threading.Thread.Sleep(waitTime);
         }
-
+        /// <summary>
+        /// Is there a wall in front of Karel?
+        /// </summary>
+        /// <returns></returns>
         public bool frontIsClear()
         {
             Position prevPos = pos;
@@ -90,6 +93,10 @@ namespace KarelTheRobot
             return isClear;
         }
 
+        /// <summary>
+        /// Is there a wall to Karel’s left?
+        /// </summary>
+        /// <returns></returns>
         public bool leftIsClear()
         {
             rot += Math.PI / 2;
@@ -98,12 +105,70 @@ namespace KarelTheRobot
             return isClear;
         }
 
+        /// <summary>
+        /// Is there a wall to Karel’s right?
+        /// </summary>
+        /// <returns></returns>
         public bool rightIsClear()
         {
             rot += 3 * (Math.PI / 2);
             bool isClear = frontIsClear();
             rot -= 3 * (Math.PI / 2);
             return isClear;
+        }
+
+        /// <summary>
+        /// Are there beepers in this cell?
+        /// </summary>
+        /// <returns></returns>
+        public bool beepersPresent()
+        {
+            return board.getBeeper(pos).numBeepers > 0;
+        }
+
+        /// <summary>
+        /// Any there beepers in Karel’s bag?
+        /// </summary>
+        /// <returns></returns>
+        public bool beepersInBag()
+        {
+            return numBeepers > 0;
+        }
+
+        /// <summary>
+        /// Is Karel facing north?
+        /// </summary>
+        /// <returns></returns>
+        public bool facingNorth()
+        {
+            return rot == Math.PI / 2;
+        }
+
+        /// <summary>
+        /// Is Karel facing east?
+        /// </summary>
+        /// <returns></returns>
+        public bool facingEast()
+        {
+            return rot == 0;
+        }
+
+        /// <summary>
+        /// Is Karel facing south?
+        /// </summary>
+        /// <returns></returns>
+        public bool facingSouth()
+        {
+            return rot == 3 * (Math.PI / 2);
+        }
+
+        /// <summary>
+        /// Is Karel facing west?
+        /// </summary>
+        /// <returns></returns>
+        public bool facingWest()
+        {
+            return rot == Math.PI;
         }
 
         private void makeMove()
