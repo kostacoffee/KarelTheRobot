@@ -15,28 +15,31 @@ namespace KarelTheRobot
         private int numCols;
         private Dictionary<Position, Position> walls;
         private Beeper[,] beepers;
-        private Karel karel;
-        private int cellSize;
-        private const int BOARD_SIZE = 603;
+        private ExtendedKarel karel;
+        private readonly int BOARD_SIZE;
         private const int LABEL_SIZE = 30;
         private const int LABEL_OFFSET = 20;
         private const int WALL_WIDTH = 3;
         private const int CELL_MARKER_SIZE = 3;
         private const double KAREL_SIZE_MULT = 0.9;
         private const double KAREL_OFFSET = 0.05;
-        public KarelBoard(string worldFile)
+        public KarelBoard(int numRows, int numCols, int boardSize, int cellSize, ExtendedKarel karel, string worldFile)
         {
+            BOARD_SIZE = boardSize;
             this.walls = new Dictionary<Position, Position>();
+            this.beepers = new Beeper[numRows, numCols];
+            this.karel = karel;
+            this.numRows = numRows;
+            this.numCols = numCols;
             initBoard(worldFile);
-            visualiseBoard();
+            visualiseBoard(cellSize);
         }
 
-        private void visualiseBoard() {
+        private void visualiseBoard(int cellSize) {
             
             this.Width = BOARD_SIZE + LABEL_SIZE + LABEL_OFFSET;
             this.Height = BOARD_SIZE + LABEL_SIZE + LABEL_OFFSET;
-            this.cellSize = BOARD_SIZE / (this.numCols > this.numRows ? this.numCols : this.numRows);
-            defineBoard();
+            defineBoard(cellSize);
             placeLabels(cellSize);
             placeCells(cellSize);
             placeBeepers(cellSize);
@@ -44,12 +47,12 @@ namespace KarelTheRobot
             placeKarel(cellSize);
         }
 
-        private void defineBoard()
+        private void defineBoard(int cellSize)
         {
             PictureBox boardBG = new PictureBox
             {
-                Width = BOARD_SIZE,
-                Height = BOARD_SIZE,
+                Width = numCols*cellSize,
+                Height = numRows*cellSize,
                 Left = LABEL_SIZE + LABEL_OFFSET,
                 Top = 0,
                 BackColor = System.Drawing.Color.White
@@ -183,11 +186,9 @@ namespace KarelTheRobot
 
         private void initBoard(string worldFile)
         {
-            string[] worldProps = File.ReadLines(worldFile).ToArray();
-            initDims(worldProps[0].Split(' '));
-            initKarel(worldProps[1].Split(' '));
+            string[] worldProps = File.ReadLines(worldFile).Skip(2).ToArray();
             initBeepers();
-            foreach (string line in worldProps.Skip(2))
+            foreach (string line in worldProps)
             {
                 string[] worldParams = line.Split(' ');
                 if (worldParams[0].Equals("w")) addWall(worldParams);
@@ -220,22 +221,6 @@ namespace KarelTheRobot
                 addWall(new Position(numRows, col), new Position(numRows - 1, col));
             }
         }
-        
-        private void initDims(string[] dims)
-        {
-            this.numRows = Convert.ToInt32(dims[0]);
-            this.numCols = Convert.ToInt32(dims[1]);
-            this.beepers = new Beeper[numRows, numCols];
-        }
-
-        private void initKarel(string[] karelParams)
-        {
-            int row = Convert.ToInt32(karelParams[0]);
-            int col = Convert.ToInt32(karelParams[1]);
-            int beeperBag = Convert.ToInt32(karelParams[2]);
-            if (beeperBag == -1) beeperBag = int.MaxValue;
-            this.karel = new Karel(row, col, beeperBag, this);
-        }
 
         private void addWall(string[] wallProps)
         {
@@ -267,18 +252,6 @@ namespace KarelTheRobot
         internal bool wallBlocks(Position pos, Position nextPos)
         {
             return ((walls.ContainsKey(pos) && walls[pos].Equals(nextPos)) || (walls.ContainsKey(nextPos) && walls[nextPos].Equals(pos)));
-        }
-
-        public Karel getKarel()
-        {
-            return karel;
-        }
-
-        internal void moveKarel()
-        {
-            int karelOffset = (int)(cellSize * KAREL_OFFSET);
-            karel.karelPic.Left = karel.pos.col * cellSize + LABEL_OFFSET + LABEL_SIZE + karelOffset;
-            karel.karelPic.Top = karel.pos.row * cellSize + karelOffset;
         }
 
         internal Beeper getBeeper(Position pos)

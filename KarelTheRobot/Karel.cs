@@ -3,93 +3,112 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace KarelTheRobot
 {
-    public class Karel
+    public abstract class Karel
     {
-        //Constants
         private const string KAREL_PIC_LOCATION = "Resources/karel.png";
-        //End Consants
-        //Private fields
         internal double rot;
-        //End Private fields
+        internal int cellSize;
         internal Position pos;
         internal int numBeepers { get; set; }
         internal PictureBox karelPic { get; set; }
         private KarelBoard board;
         internal int waitTime;
+        internal Thread karelThread;
 
-        public Karel(int row, int col, int numBeepers, KarelBoard board)
+        public Karel(int row, int col, int numBeepers, int cellSize)
         {
+            this.cellSize = cellSize;
             this.pos = new Position(row, col);
             this.numBeepers = numBeepers;
             this.karelPic = new PictureBox { ImageLocation = KAREL_PIC_LOCATION, SizeMode = PictureBoxSizeMode.StretchImage };
             this.rot = 0;
-            this.board = board;
-            this.waitTime = 500;
+            this.waitTime = 100;
         }
+
+        internal void Start()
+        {
+            try
+            {
+                run();
+            }
+            catch (KarelException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+        protected virtual void run() { } // Filled by extended classes.
 
         /// <summary>
         /// Asks Karel to move forward one block in the current direction.
         /// Karel will crash if there is a wall blocking its way.
         /// </summary>
-        public void move()
+        protected void move()
         {
             if (!frontIsClear()) throw new KarelException("Crashed into wall!");
-            makeMove();
-            board.moveKarel();
-            board.Refresh();
-            System.Threading.Thread.Sleep(waitTime);
-
+            Position nextPos = makeMove();
+            moveKarelPic(pos, nextPos);
+            pos = nextPos;
+            Thread.Sleep(waitTime);
         }
 
         /// <summary>
         /// Asks Karel to rotate 90 degrees to the left (counterclockwise).
         /// </summary>
-        public void turnLeft() 
+        protected void turnLeft() 
         {
             rot += Math.PI / 2;
-            karelPic.Image.RotateFlip(System.Drawing.RotateFlipType.Rotate270FlipNone);
-            board.Refresh();
-            System.Threading.Thread.Sleep(waitTime);
+            karelPic.Invoke((MethodInvoker)delegate
+            {
+                karelPic.Image.RotateFlip(System.Drawing.RotateFlipType.Rotate270FlipNone);
+                board.Refresh();
+            });
+            Thread.Sleep(waitTime);
         }
 
         /// <summary>
         /// Asks Karel to pick up one beeper from the current cell and stores the beeper in its beeper bag.
         /// Karel will crash unless there is a beeper on the current cell.
         /// </summary>
-        public void pickBeeper()
+        protected void pickBeeper()
         {
-            board.takeBeeper(pos);
+            board.Invoke((MethodInvoker)delegate
+            {
+                board.takeBeeper(pos);
+                board.Refresh();
+            });
             this.numBeepers++;
-            board.Refresh();
-            System.Threading.Thread.Sleep(waitTime);
+            Thread.Sleep(waitTime);
         }
 
         /// <summary>
         /// Asks Karel to take a beeper from its beeper bag and put it down on the current cell.
         /// Karel will crash unless there are beepers in its beeper bag.
         /// </summary>
-        public void placeBeeper()
+        protected void placeBeeper()
         {
-            if (numBeepers == 0) throw new KarelException("No beepers in this cell!");
+            if (numBeepers == 0) throw new KarelException("No beepers in bag!");
             numBeepers--;
-            board.putBeeper(pos);
-            board.Refresh();
-            System.Threading.Thread.Sleep(waitTime);
+            board.Invoke((MethodInvoker)delegate
+            {
+                board.putBeeper(pos);
+                board.Refresh();
+            });
+            Thread.Sleep(waitTime);
         }
+
         /// <summary>
         /// Is there a wall in front of Karel?
         /// </summary>
         /// <returns></returns>
-        public bool frontIsClear()
+        protected bool frontIsClear()
         {
-            Position prevPos = pos;
-            makeMove();
-            bool isClear = !board.wallBlocks(pos, prevPos);
-            pos = prevPos;
+            Position nextPos = makeMove();
+            bool isClear = !board.wallBlocks(nextPos, pos);
             return isClear;
         }
 
@@ -97,7 +116,7 @@ namespace KarelTheRobot
         /// Is there a wall to Karel’s left?
         /// </summary>
         /// <returns></returns>
-        public bool leftIsClear()
+        protected bool leftIsClear()
         {
             rot += Math.PI / 2;
             bool isClear = frontIsClear();
@@ -109,7 +128,7 @@ namespace KarelTheRobot
         /// Is there a wall to Karel’s right?
         /// </summary>
         /// <returns></returns>
-        public bool rightIsClear()
+        protected bool rightIsClear()
         {
             rot += 3 * (Math.PI / 2);
             bool isClear = frontIsClear();
@@ -121,7 +140,7 @@ namespace KarelTheRobot
         /// Are there beepers in this cell?
         /// </summary>
         /// <returns></returns>
-        public bool beepersPresent()
+        protected bool beepersPresent()
         {
             return board.getBeeper(pos).numBeepers > 0;
         }
@@ -130,7 +149,7 @@ namespace KarelTheRobot
         /// Any there beepers in Karel’s bag?
         /// </summary>
         /// <returns></returns>
-        public bool beepersInBag()
+        protected bool beepersInBag()
         {
             return numBeepers > 0;
         }
@@ -139,7 +158,7 @@ namespace KarelTheRobot
         /// Is Karel facing north?
         /// </summary>
         /// <returns></returns>
-        public bool facingNorth()
+        protected bool facingNorth()
         {
             return rot == Math.PI / 2;
         }
@@ -148,7 +167,7 @@ namespace KarelTheRobot
         /// Is Karel facing east?
         /// </summary>
         /// <returns></returns>
-        public bool facingEast()
+        protected bool facingEast()
         {
             return rot == 0;
         }
@@ -157,7 +176,7 @@ namespace KarelTheRobot
         /// Is Karel facing south?
         /// </summary>
         /// <returns></returns>
-        public bool facingSouth()
+        protected bool facingSouth()
         {
             return rot == 3 * (Math.PI / 2);
         }
@@ -166,15 +185,35 @@ namespace KarelTheRobot
         /// Is Karel facing west?
         /// </summary>
         /// <returns></returns>
-        public bool facingWest()
+        protected bool facingWest()
         {
             return rot == Math.PI;
         }
 
-        private void makeMove()
+        private Position makeMove()
         {
-            pos.col += (int)Math.Round(Math.Cos(rot), MidpointRounding.AwayFromZero); // cosine moves Karel left/right
-            pos.row += (int)Math.Round(-Math.Sin(rot), MidpointRounding.AwayFromZero); // sine move Karel up/down
+            Position newPos = pos;
+            newPos.col += (int)Math.Round(Math.Cos(rot), MidpointRounding.AwayFromZero); // cosine moves Karel left/right
+            newPos.row += (int)Math.Round(-Math.Sin(rot), MidpointRounding.AwayFromZero); // sine move Karel up/down
+            return newPos;
+        }
+
+        private void moveKarelPic(Position p1, Position p2)
+        {
+            int colChange = p2.col - p1.col;
+            int rowChange = p2.row - p1.row;
+            karelPic.Invoke((MethodInvoker)delegate
+            {
+                karelPic.Left += colChange * cellSize;
+                karelPic.Top += rowChange * cellSize;
+                board.Refresh();
+            });
+
+        }
+
+        protected internal void setBoard(KarelBoard board)
+        {
+            this.board = board;
         }
     }
 }

@@ -57,9 +57,7 @@
     <Compile Include="KarelBoard.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="KarelTheTest.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="ExtendedKarel.cs" />
     <Compile Include="Structs + Exceptions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
